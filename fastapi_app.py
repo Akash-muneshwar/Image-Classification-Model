@@ -11,6 +11,9 @@ from PIL import Image
 import io
 import os
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Disable GPU
+
+
 # Initialize FastAPI app
 app = FastAPI()
 
@@ -105,6 +108,11 @@ def overlay_heatmap_on_image(img, heatmap):
     return heatmap_path
 
 # Prediction endpoint with Basic Authentication & Grad-CAM
+@app.get("/")
+def home():
+    return {"message": "FastAPI is running!"}
+
+
 @app.post("/predict")
 async def predict(
     file: UploadFile = File(...),
