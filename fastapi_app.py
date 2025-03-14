@@ -22,9 +22,21 @@ logging.basicConfig(
 )
 
 # Load trained model
+import gdown
+
+# Google Drive file ID (Replace with your actual file ID)
+GDRIVE_FILE_ID = "11qn-bPYE-b-osdDjJy1ji7mixRkP_qSu"
+MODEL_PATH = "resnet50_cifar10.h5"
+
+# Download the model if not present
+if not os.path.exists(MODEL_PATH):
+    logging.info("Downloading model from Google Drive...")
+    gdown.download(f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}", MODEL_PATH, quiet=False)
+
+# Load the model
 try:
-    model = load_model("/home/user/Documents/soulai/resnet50_cifar10.h5")
-    logging.info("Model loaded successfully.")
+    model = load_model(MODEL_PATH)
+    logging.info("Model loaded successfully!")
 except Exception as e:
     logging.error(f"Error loading model: {str(e)}")
     raise HTTPException(status_code=500, detail="Failed to load the model.")
