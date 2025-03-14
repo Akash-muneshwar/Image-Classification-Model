@@ -6,3 +6,4 @@ gdown
 numpy
 matplotlib
 opencv-python
+python-multipart
