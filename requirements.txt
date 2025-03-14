@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+tensorflow
+pillow
+gdown
+numpy
+matplotlib
+opencv-python
