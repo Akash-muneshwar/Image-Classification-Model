@@ -49,8 +49,4 @@ The backend was deployed on [Render](https://render.com/). Steps:
 - Used ResNet50 for image classification.  
 - Built a FastAPI backend for predictions.  
 - Implemented Grad-CAM for visualization.  
-- Developed a Streamlit UI for user interaction.  
-
-## Author  
-
-Developed by **Your Name**. 🚀  
+- Developed a Streamlit UI for user interaction.    
