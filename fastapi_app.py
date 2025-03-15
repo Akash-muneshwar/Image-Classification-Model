@@ -36,17 +36,19 @@ security = HTTPBasic()
 USERNAME = "admin"
 PASSWORD = "password"
 
-#  **Load Model Once at Startup**
-if not os.path.exists(MODEL_PATH):
-    logging.info("Downloading model from Google Drive...")
-    gdown.download(f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}", MODEL_PATH, quiet=False)
+# Load model only once (Singleton Pattern)
+model = None
 
-try:
-    model = load_model(MODEL_PATH)
-    logging.info("Model loaded successfully!")
-except Exception as e:
-    logging.error(f"Error loading model: {str(e)}")
-    raise RuntimeError("Failed to load the model.")
+def get_model():
+    global model
+    if model is None:
+        logging.info("Loading model...")
+        if not os.path.exists(MODEL_PATH):
+            logging.info("Downloading model from Google Drive...")
+            gdown.download(f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}", MODEL_PATH, quiet=False)
+        model = load_model(MODEL_PATH)
+        logging.info("Model loaded successfully!")
+    return model
 
 # 🟢 **Preprocess Image Function**
 def preprocess_image(image_bytes):
@@ -63,18 +65,19 @@ def preprocess_image(image_bytes):
 
 # 🟢 **Generate Grad-CAM Heatmap**
 def generate_gradcam_heatmap(img_array, model, class_index, layer_name="conv5_block3_out"):
-    grad_model = Model(
-        inputs=model.input, 
+    grad_model = tf.keras.models.Model(
+        inputs=model.input,
         outputs=[model.get_layer(layer_name).output, model.output]
     )
+    grad_model.trainable = False  # Prevent memory leaks
+    
     with tf.GradientTape() as tape:
         conv_outputs, predictions = grad_model(img_array)
         loss = predictions[:, class_index]
-
+    
     grads = tape.gradient(loss, conv_outputs)
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
     heatmap = tf.reduce_sum(tf.multiply(conv_outputs, pooled_grads), axis=-1)
-
     heatmap = tf.maximum(heatmap, 0) / tf.reduce_max(heatmap)
     return heatmap.numpy()
 
@@ -83,10 +86,8 @@ def overlay_heatmap_on_image(img, heatmap):
     heatmap = cv2.resize(heatmap, (img.size[0], img.size[1]))
     heatmap = np.uint8(255 * heatmap)
     heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
-
     img_cv = np.array(img)
     superimposed_img = cv2.addWeighted(img_cv, 0.6, heatmap, 0.4, 0)
-
     heatmap_path = "gradcam_output.jpg"
     cv2.imwrite(heatmap_path, superimposed_img)
     return heatmap_path
@@ -114,8 +115,7 @@ async def predict(
             raise HTTPException(status_code=400, detail="Empty file received")
 
         img_array, img = preprocess_image(image_bytes)
-
-        # Make prediction
+        model = get_model()
         predictions = model.predict(img_array)
         predicted_class_index = np.argmax(predictions)
         predicted_class = class_names[predicted_class_index]
