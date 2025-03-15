@@ -1,4 +1,6 @@
 Image Classification API with FastAPI & Streamlit
+
+
 This project is an image classification model using ResNet50 trained on CIFAR-10. The backend is built with FastAPI, and the frontend is powered by Streamlit. The model predicts the class of an image and generates a Grad-CAM heatmap for interpretability.
 
 Setup & Installation
