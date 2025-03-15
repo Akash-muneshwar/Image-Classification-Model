@@ -32,9 +32,6 @@ security = HTTPBasic()
 USERNAME = "admin"
 PASSWORD = "password"
 
-# ✅ TensorFlow Memory Optimization
-tf.config.experimental.set_memory_growth(tf.config.list_physical_devices('CPU')[0], True)
-
 # ✅ Load model at startup and keep in memory
 if not os.path.exists(MODEL_PATH):
     logging.info("Downloading model from Google Drive...")
